@@ -28,14 +28,36 @@ namespace Trebuchet
                 {
                     ISystemComponent Component = Type.GetConstructor(new Type[] {}).Invoke(new object[] {}) as ISystemComponent;
 
-                    Component.Run();
-
                     SystemComponents.Add(Component);
                 }
             }
+
+            var Percent = (100 / SystemComponents.Count);
+            var TotPercent = 0;
+
+            Get<LogComponent>().Run();
+            Get<LogComponent>().WriteLine("Welcome {0}", Environment.UserName);
+
+            int CursorTop = Console.CursorTop;
+
+            Get<LogComponent>().WriteLine("Starting components ({0}%)", TotPercent);
+
+            foreach (var Component in SystemComponents)
+            {
+                Component.Run();
+                TotPercent += Percent;
+                Console.SetCursorPosition(0, CursorTop);
+                Get<LogComponent>().WriteLine("Starting components ({0}%)", TotPercent);
+            }
+
             #endregion
 
             Get<LogComponent>().Freeze();
+        }
+
+        public static void ThrowException(string Message)
+        {
+            Get<LogComponent>().BlurLine("ERR", ConsoleColor.DarkRed, Message, ConsoleColor.Red);
         }
 
         public static T Get<T>()

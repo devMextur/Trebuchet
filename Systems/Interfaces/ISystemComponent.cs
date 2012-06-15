@@ -8,6 +8,7 @@ namespace Trebuchet.Systems.Interfaces
 {
     interface ISystemComponent
     {
+        bool Started { get; set; }
         void Run();
     }
 }
