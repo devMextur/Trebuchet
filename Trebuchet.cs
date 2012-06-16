@@ -17,6 +17,7 @@ namespace Trebuchet
             set;
         }
 
+        [MTAThread]
         public static void Main()
         {
             #region Boot Components
@@ -32,13 +33,13 @@ namespace Trebuchet
                 }
             }
 
-            var Percent = (100 / SystemComponents.Count);
-            var TotPercent = 0;
+            double Percent = (double)(100 / (double)SystemComponents.Count);
+            double TotPercent = 0;
 
             Get<LogComponent>().Run();
             Get<LogComponent>().WriteLine("Welcome {0}", Environment.UserName);
 
-            int CursorTop = Console.CursorTop;
+            var CursorTop = Console.CursorTop;
 
             Get<LogComponent>().WriteLine("Starting components ({0}%)", TotPercent);
 
@@ -47,7 +48,7 @@ namespace Trebuchet
                 Component.Run();
                 TotPercent += Percent;
                 Console.SetCursorPosition(0, CursorTop);
-                Get<LogComponent>().WriteLine("Starting components ({0}%)", TotPercent);
+                Get<LogComponent>().WriteLine("Starting components ({0}%)", (int)TotPercent);
             }
 
             #endregion

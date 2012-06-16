@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Systems\Components\ExceptionComponent.cs" />
     <Compile Include="Systems\Components\LogComponent.cs" />
     <Compile Include="Systems\Components\SettingsComponent.cs" />
     <Compile Include="Systems\Interfaces\ISystemComponent.cs" />
