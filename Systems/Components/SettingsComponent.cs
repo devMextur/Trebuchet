@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Trebuchet.Systems.Interfaces;
@@ -15,10 +18,16 @@ namespace Trebuchet.Systems.Components
             set;
         }
 
-        public Dictionary<string, string> Information
+        public IReadOnlyDictionary<string, object> Settings
         {
             get;
-            set;
+            private set;
+        }
+
+        public IReadOnlyDictionary<Type, MethodInfo> Convertors
+        {
+            get;
+            private set;
         }
 
         public string SETTINGS_PATH
@@ -31,12 +40,7 @@ namespace Trebuchet.Systems.Components
 
         public void Run()
         {
-            this.ReadSettings();
-        }
-
-        public void ReadSettings()
-        {
-            Information = new Dictionary<string, string>();
+            Dictionary<string, object> Items = new Dictionary<string, object>();
 
             if (!System.IO.File.Exists(SETTINGS_PATH))
             {
@@ -61,18 +65,79 @@ namespace Trebuchet.Systems.Components
                 return;
             }
 
-            foreach (string Line in Lines)
+            foreach (string Line in File.ReadAllLines(SETTINGS_PATH))
             {
-                var Components = Line.Split('<', '>');
+                var Split = Line.Split('<', '>');
 
-                if (Components.Count() == 5)
+                if (!Line.StartsWith("<") && !Line.EndsWith(">") && Split.Count() != 5)
                 {
-                    var Key = Components[1];
-                    var Value = Components[2];
+                    continue;
+                }
 
-                    //TODO: Finish this...
+                Items.Add(Split[1], Split[2]);
+            }
+
+            Settings = new Dictionary<string, object>(Items);
+
+            Dictionary<Type, MethodInfo> ConvertorItems = new Dictionary<Type, MethodInfo>();
+
+            foreach (MethodInfo Method in typeof(Convertors).GetMethods())
+            {
+                if (Method.IsStatic)
+                {
+                    ConvertorItems.Add(Method.ReturnType, Method);
                 }
             }
+
+            Convertors = new Dictionary<Type, MethodInfo>(ConvertorItems);
+        }
+
+        public bool TryPop<T>(string Key, out T Output)
+        {
+            Output = default(T);
+
+            object Value;
+
+            Settings.TryGetValue(Key, out Value);
+
+            if (Value != null)
+            {
+                if (Convertors.ContainsKey(typeof(T)))
+                {
+                    Output = (T)Convertors[typeof(T)].Invoke(null, new object[] { Value });
+                }
+            }
+
+            return !Output.Equals(default(T));
+        }
+    }
+
+    static class Convertors
+    {
+        public static string ConvertString(object Input)
+        {
+            return Input.ToString();
+        }
+
+        public static int ConvertInteger(object Input)
+        {
+            int Output = default(int);
+            int.TryParse(Input.ToString(), out Output);
+            return Output;
+        }
+
+        public static bool ConvertBoolean(object Input)
+        {
+            bool Output = default(bool);
+            bool.TryParse(Input.ToString(), out Output);
+            return Output;
+        }
+
+        public static IPAddress ConvertIPAddress(object Input)
+        {
+            IPAddress Output = default(IPAddress);
+            IPAddress.TryParse(Input.ToString(), out Output);
+            return Output;
         }
     }
 }
