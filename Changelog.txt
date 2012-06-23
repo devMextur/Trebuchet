@@ -1,4 +1,4 @@
-﻿23-6-2012
+﻿23-6-2012 - REV 1.0.0.0 (no update)
 - Re-organize Systems.
 - Coded: MemoryComponent(handler of Memory) and Framework(handler of our framework).
 - Edit: ExceptionComponent, LogComponent.
