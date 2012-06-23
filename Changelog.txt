@@ -1,0 +1,6 @@
+﻿23-6-2012
+- Re-organize Systems.
+- Coded: MemoryComponent(handler of Memory) and Framework(handler of our framework).
+- Edit: ExceptionComponent, LogComponent.
+- Finished: MemoryComponent, ExceptionComponent, LogComponent and Framework.
+- Created Changelog.
