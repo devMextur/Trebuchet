@@ -22,22 +22,9 @@ namespace Trebuchet.Systems.Components
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool SetProcessWorkingSetSize(IntPtr process, UIntPtr minimumWorkingSetSize, UIntPtr maximumWorkingSetSize);
 
-        public Timer GarbageTimer
-        {
-            get;
-            set;
-        }
-
         public void Run()
         {
             SetProcessWorkingSetSize(Process.GetCurrentProcess().Handle, (UIntPtr)0xFFFFFFFF, (UIntPtr)0xFFFFFFFF);
-
-            this.GarbageTimer = new Timer(HandleGarbage, GarbageTimer, 0, 60000);
-        }
-
-        private void HandleGarbage(object Obj)
-        {
-            GC.Collect();
         }
     }
 }

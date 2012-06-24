@@ -96,19 +96,23 @@ namespace Trebuchet.Systems.Components
         {
             Output = default(T);
 
-            object Value;
-
-            Settings.TryGetValue(Key, out Value);
-
-            if (Value != null)
+            try
             {
-                if (Convertors.ContainsKey(typeof(T)))
-                {
-                    Output = (T)Convertors[typeof(T)].Invoke(null, new object[] { Value });
-                }
-            }
+                object Value;
 
-            return !Output.Equals(default(T));
+                Settings.TryGetValue(Key, out Value);
+
+                if (Value != null)
+                {
+                    if (Convertors.ContainsKey(typeof(T)))
+                    {
+                        Output = (T)Convertors[typeof(T)].Invoke(null, new object[] { Value });
+                    }
+                }
+
+                return !Output.Equals(default(T));
+            }
+            catch { return false; }
         }
     }
 

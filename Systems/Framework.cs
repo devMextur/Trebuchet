@@ -44,6 +44,8 @@ namespace Trebuchet.Systems
 
             try
             {
+                var OldCursorTop = Console.CursorTop;
+
                 foreach (var Component in SystemComponents)
                 {
                     if (!Component.Started)
@@ -53,15 +55,25 @@ namespace Trebuchet.Systems
                     }
 
                     TotPercent += Percent;
+                    OldCursorTop = Console.CursorTop;
                     Console.SetCursorPosition(0, CursorTop);
                     Get<LogComponent>().WriteLine("Starting components ({0}%)", (int)TotPercent);
                 }
 
+                if (OldCursorTop > 0)
+                {
+                    Console.SetCursorPosition(0, OldCursorTop);
+                }
+
                 Get<LogComponent>().WriteLine();
                 Get<LogComponent>().BlurLine("LOG", ConsoleColor.DarkCyan, "Successfully booted framework, logging starts after this line:", ConsoleColor.Green);
+
+                Console.Beep();
             }
-            catch
+            catch (Exception ex)
             {
+                Trebuchet.ThrowException(ex.Message);
+
                 Get<LogComponent>().WriteLine();
                 Get<LogComponent>().BlurLine("LOG", ConsoleColor.DarkCyan, "Failed booted framework, logging ends towards this line:", ConsoleColor.Red);
             }

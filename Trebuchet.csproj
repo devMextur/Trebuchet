@@ -51,6 +51,7 @@
     <Compile Include="Systems\Components\Core\LogComponent.cs" />
     <Compile Include="Systems\Components\Core\MemoryComponent.cs" />
     <Compile Include="Systems\Components\Core\SettingsComponent.cs" />
+    <Compile Include="Systems\Components\Sockets\SocketComponent.cs" />
     <Compile Include="Systems\Interfaces\ISystemComponent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Systems\Framework.cs" />

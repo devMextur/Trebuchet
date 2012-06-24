@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Trebuchet.System>
   <Trebuchet.Network>
-    <Trebuchet.Network.IP>null</Trebuchet.Network.IP>
+    <Trebuchet.Network.IP>0.0.0.0</Trebuchet.Network.IP>
+    <Trebuchet.Network.Port>30000</Trebuchet.Network.Port>
   </Trebuchet.Network>
 </Trebuchet.System>

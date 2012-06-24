@@ -32,7 +32,7 @@ namespace Trebuchet.Systems.Components
             }
             else
             {
-                this.Stream = File.AppendText("Exceptions.txt"); ;
+                this.Stream = File.AppendText("Exceptions.txt");
             }
         }
 
