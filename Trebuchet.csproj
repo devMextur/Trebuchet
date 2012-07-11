@@ -47,6 +47,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Sockets\BufferPool.cs" />
+    <Compile Include="Classes\Sockets\UserToken.cs" />
+    <Compile Include="Classes\Global\TPool.cs" />
     <Compile Include="Systems\Components\Core\ExceptionComponent.cs" />
     <Compile Include="Systems\Components\Core\LogComponent.cs" />
     <Compile Include="Systems\Components\Core\MemoryComponent.cs" />

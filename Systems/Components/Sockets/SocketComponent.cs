@@ -4,7 +4,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Trebuchet.Classes.Global;
+using Trebuchet.Classes.Sockets;
 using Trebuchet.Systems.Interfaces;
 
 namespace Trebuchet.Systems.Components
@@ -23,9 +26,43 @@ namespace Trebuchet.Systems.Components
             set;
         }
 
+        #region Pooling
+        public TPool<SocketAsyncEventArgs> AcceptArgsPool
+        {
+            get;
+            set;
+        }
+
+        public TPool<SocketAsyncEventArgs> ReceiveArgsPool
+        {
+            get;
+            set;
+        }
+
+        public TPool<SocketAsyncEventArgs> SendArgsPool
+        {
+            get;
+            set;
+        }
+        #endregion
+
+        public SemaphoreSlim Semaphore
+        {
+            get;
+            set;
+        }
+
+        public BufferPool Buffer
+        {
+            get;
+            set;
+        }
+
         public void Run()
         {
             this.ConstructSocket();
+            this.ConstructFramework();
+            this.QueueAccept();
         }
 
         private void ConstructSocket()
@@ -48,10 +85,159 @@ namespace Trebuchet.Systems.Components
                 return;
             }
 
+            var Backlog = default(int);
+
+            if (!Framework.Get<SettingsComponent>().TryPop<int>("Trebuchet.Network.Backlog", out Backlog))
+            {
+                Trebuchet.ThrowException("Failed to get the Network Backlog.");
+                Trebuchet.ThrowException("Check Setting 'Trebuchet.Network.Backlog', it must be a valid integer.");
+                return;
+            }
+
             var EndPoint = new IPEndPoint(IPAddress, Port);
 
             this.Socket = new Socket(EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
             this.Socket.Bind(EndPoint);
+            this.Socket.Blocking = false;
+            this.Socket.Listen(Backlog);
+        }
+
+        private void ConstructFramework()
+        {
+            var SupportedAmount = default(int);
+
+            if (!Framework.Get<SettingsComponent>().TryPop<int>("Trebuchet.Network.SupportedAmount", out SupportedAmount))
+            {
+                Trebuchet.ThrowException("Failed to get the Network SupportedAmount.");
+                Trebuchet.ThrowException("Check Setting 'Trebuchet.Network.SupportedAmount', it must be a valid integer.");
+                return;
+            }
+
+            this.AcceptArgsPool = new TPool<SocketAsyncEventArgs>(SupportedAmount);
+            this.ReceiveArgsPool = new TPool<SocketAsyncEventArgs>(SupportedAmount);
+            this.SendArgsPool = new TPool<SocketAsyncEventArgs>(SupportedAmount);
+            this.Semaphore = new SemaphoreSlim(SupportedAmount, SupportedAmount);
+            this.Buffer = new BufferPool(SupportedAmount);
+            this.Buffer.PushAllReceivers(this.ReceiveArgsPool.PushAndHandleAll());
+            this.Buffer.PushAllSenders(this.SendArgsPool.PushAndHandleAll());
+
+            foreach (SocketAsyncEventArgs Args in this.AcceptArgsPool.PushAndHandleAll())
+            {
+                Args.Completed += AcceptCompleted;
+            }
+        }
+
+        public void QueueAccept()
+        {
+            SocketAsyncEventArgs AcceptArgs;
+
+            if (AcceptArgsPool.TryPop(out AcceptArgs))
+            {
+                Semaphore.Wait();
+
+                bool Result = Socket.AcceptAsync(AcceptArgs);
+
+                if (!Result)
+                {
+                    ProccesAccept(AcceptArgs);
+                }
+            }
+        }
+
+        public void ProccesAccept(SocketAsyncEventArgs Args)
+        {
+            if (Args.SocketError != SocketError.Success)
+            {
+                FinializeAccept(true, Args);
+                return;
+            }
+
+            QueueAccept();
+
+            SocketAsyncEventArgs ReceiveArgs;
+
+            if (this.ReceiveArgsPool.TryPop(out ReceiveArgs))
+            {
+                ReceiveArgs.UserToken = new UserToken(Args, ReceiveArgs);
+                FinializeAccept(false, Args);
+                QueueReceive(ReceiveArgs);
+
+                Framework.Get<LogComponent>().WriteLine("Accepted: {0}", (ReceiveArgs.UserToken as UserToken).Socket.RemoteEndPoint);
+            }
+            else FinializeAccept(true, Args);
+        }
+
+        private void AcceptCompleted(object Pointer, SocketAsyncEventArgs Args)
+        {
+            this.ProccesAccept(Args);
+        }
+
+        private void FinializeAccept(bool Close, SocketAsyncEventArgs Args)
+        {
+            if (Close)
+            {
+                Args.AcceptSocket.Close();
+            }
+
+            Args.AcceptSocket = null;
+            this.AcceptArgsPool.Push(Args);
+        }
+
+        public void QueueReceive(SocketAsyncEventArgs Args)
+        {
+            bool Result = (Args.UserToken as UserToken).Socket.ReceiveAsync(Args);
+
+            if (!Result)
+            {
+               // ProcessReceive(Args);
+            }
+        }
+
+        public void ReceiveCompleted(SocketAsyncEventArgs Args)
+        {
+            if (Args.BytesTransferred > 0 && Args.SocketError == SocketError.Success)
+            {
+                byte[] Data = new byte[Args.BytesTransferred];
+
+                Array.Copy(Buffer.Buffer, Args.Offset, Data, 0, Args.BytesTransferred);
+
+               // MessageHandler.Get().ProcessBytes((Args.UserToken as Session), ref Data);
+
+                QueueReceive(Args);
+            }
+            else
+            {
+                CloseClientSocket(Args);
+                this.ReceiveArgsPool.Push(Args);
+                this.Semaphore.Release();
+            } 
+        }
+
+        public void FinializeTraffic(object Pointer, SocketAsyncEventArgs Args)
+        {
+            switch (Args.LastOperation)
+            {
+                case SocketAsyncOperation.Receive:
+                    //ProcessReceive(e);
+                    break;
+                case SocketAsyncOperation.Send:
+                    //ProcessSend(e);
+                    break;
+            }
+        }
+
+        private void CloseClientSocket(SocketAsyncEventArgs Args)
+        {
+            UserToken Token = (Args.UserToken as UserToken);
+
+            try
+            {
+                Token.Socket.Shutdown(SocketShutdown.Both);
+            }
+            catch (Exception) { }
+
+            Token.Socket.Close();
+            Token.OnConnectionClose();
         }
     }
 }

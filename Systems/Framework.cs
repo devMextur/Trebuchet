@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Trebuchet.Systems.Components;
 using Trebuchet.Systems.Interfaces;
 
-namespace Trebuchet.Systems
+namespace Trebuchet
 {
     static class Framework
     {        
@@ -79,6 +79,7 @@ namespace Trebuchet.Systems
             }
             
             Get<LogComponent>().PrintLine("_______________________________________________________________________________");
+            Get<LogComponent>().WriteLine();
         }
 
         public static T Get<T>()
