@@ -155,11 +155,15 @@ namespace Trebuchet.Systems.Components
             QueueAccept();
 
             SocketAsyncEventArgs ReceiveArgs;
+            SocketAsyncEventArgs SendArgs;
 
-            if (this.ReceiveArgsPool.TryPop(out ReceiveArgs))
+            if (this.ReceiveArgsPool.TryPop(out ReceiveArgs) && this.SendArgsPool.TryPop(out SendArgs))
             {
-                ReceiveArgs.UserToken = new UserToken(Args, ReceiveArgs);
+                ReceiveArgs.UserToken = new UserToken(Args, ReceiveArgs,SendArgs);
+                SendArgs.UserToken = ReceiveArgs.UserToken;
+
                 FinializeAccept(false, Args);
+
                 QueueReceive(ReceiveArgs);
 
                 Framework.Get<LogComponent>().WriteLine("Accepted: {0}", (ReceiveArgs.UserToken as UserToken).Socket.RemoteEndPoint);
@@ -189,28 +193,62 @@ namespace Trebuchet.Systems.Components
 
             if (!Result)
             {
-               // ProcessReceive(Args);
+                ReceiveCompleted(Args);
             }
         }
 
         public void ReceiveCompleted(SocketAsyncEventArgs Args)
         {
+            var Token = (Args.UserToken as UserToken);
+
             if (Args.BytesTransferred > 0 && Args.SocketError == SocketError.Success)
             {
                 byte[] Data = new byte[Args.BytesTransferred];
 
                 Array.Copy(Buffer.Buffer, Args.Offset, Data, 0, Args.BytesTransferred);
 
-               // MessageHandler.Get().ProcessBytes((Args.UserToken as Session), ref Data);
+                // MessageHandler.Get().ProcessBytes((Args.UserToken as Session), ref Data);
+
+                Framework.Get<LogComponent>().WriteLine("Packet: {0}", Encoding.Default.GetString(Data));
 
                 QueueReceive(Args);
             }
             else
             {
+                // TODO: write error
                 CloseClientSocket(Args);
-                this.ReceiveArgsPool.Push(Args);
-                this.Semaphore.Release();
             } 
+        }
+
+        public void QueueSend(SocketAsyncEventArgs Args)
+        {
+            var Token = (Args.UserToken as UserToken);
+
+            if (Token.QueueBytesToSend != null)
+            {
+                Args.SetBuffer(Args.Offset, Token.QueueBytesToSend.Length);
+                System.Buffer.BlockCopy(Token.QueueBytesToSend, 0, Args.Buffer, Args.Offset, Token.QueueBytesToSend.Length);
+
+                Token.FinializeSending();
+            }
+
+            bool Result = (Args.UserToken as UserToken).Socket.SendAsync(Args);
+
+            if (!Result)
+            {
+                SendCompleted(Args);
+            }
+        }
+
+        public void SendCompleted(SocketAsyncEventArgs Args)
+        {
+            var Token = (Args.UserToken as UserToken);
+
+            if (Args.SocketError != SocketError.Success)
+            {
+                // TODO: write error
+                CloseClientSocket(Args);
+            }
         }
 
         public void FinializeTraffic(object Pointer, SocketAsyncEventArgs Args)
@@ -218,10 +256,10 @@ namespace Trebuchet.Systems.Components
             switch (Args.LastOperation)
             {
                 case SocketAsyncOperation.Receive:
-                    //ProcessReceive(e);
+                    ReceiveCompleted(Args);
                     break;
                 case SocketAsyncOperation.Send:
-                    //ProcessSend(e);
+                    SendCompleted(Args);
                     break;
             }
         }
@@ -229,6 +267,10 @@ namespace Trebuchet.Systems.Components
         private void CloseClientSocket(SocketAsyncEventArgs Args)
         {
             UserToken Token = (Args.UserToken as UserToken);
+
+            this.Semaphore.Release();
+
+            Framework.Get<LogComponent>().WriteLine("Closed: {0}", Token.Socket.RemoteEndPoint);
 
             try
             {
