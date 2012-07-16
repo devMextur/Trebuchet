@@ -1,4 +1,8 @@
-﻿14:16 24-6-2012 : REV 1.0.0.0 (no update)
+﻿18:07 16-7-2012 : REV 1.0.0.0
+- Coded Asynchronized Sending/Receiving/Accepting.
+- Finished Sockets.
+
+14:16 24-6-2012 : REV 1.0.0.0 (no update)
 - Started SocketComponent.
 - Improved LogComponent (Async-Loggin) (not finished yet, need to handle the tasks)
 - MemoryComponent rollback (useless).
