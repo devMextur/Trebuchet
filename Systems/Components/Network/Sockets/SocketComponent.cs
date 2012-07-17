@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Trebuchet.Classes.Global;
-using Trebuchet.Classes.Sockets;
+using Trebuchet.Classes.Network.Sockets;
 using Trebuchet.Systems.Interfaces;
 
 namespace Trebuchet.Systems.Components
@@ -127,6 +127,8 @@ namespace Trebuchet.Systems.Components
             }
         }
 
+        #region Accepting
+
         public void QueueAccept()
         {
             SocketAsyncEventArgs AcceptArgs;
@@ -187,6 +189,9 @@ namespace Trebuchet.Systems.Components
             this.AcceptArgsPool.Push(Args);
         }
 
+        #endregion
+
+        #region Receiving
         public void QueueReceive(SocketAsyncEventArgs Args)
         {
             bool Result = (Args.UserToken as UserToken).Socket.ReceiveAsync(Args);
@@ -219,7 +224,9 @@ namespace Trebuchet.Systems.Components
                 CloseClientSocket(Args);
             } 
         }
+        #endregion
 
+        #region Sending
         public void QueueSend(SocketAsyncEventArgs Args)
         {
             var Token = (Args.UserToken as UserToken);
@@ -250,7 +257,9 @@ namespace Trebuchet.Systems.Components
                 CloseClientSocket(Args);
             }
         }
+        #endregion
 
+        #region Finializing
         public void FinializeTraffic(object Pointer, SocketAsyncEventArgs Args)
         {
             switch (Args.LastOperation)
@@ -281,5 +290,6 @@ namespace Trebuchet.Systems.Components
             Token.Socket.Close();
             Token.OnConnectionClose();
         }
+        #endregion
     }
 }

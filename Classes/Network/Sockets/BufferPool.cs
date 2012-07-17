@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Trebuchet.Systems.Components;
 
-namespace Trebuchet.Classes.Sockets
+namespace Trebuchet.Classes.Network.Sockets
 {
     class BufferPool
     {

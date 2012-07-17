@@ -47,14 +47,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Sockets\BufferPool.cs" />
-    <Compile Include="Classes\Sockets\UserToken.cs" />
+    <Compile Include="Classes\Network\Messages\MessageEvent.cs" />
+    <Compile Include="Classes\Network\Sockets\BufferPool.cs" />
+    <Compile Include="Classes\Network\Messages\Headers.cs" />
+    <Compile Include="Classes\Network\Sockets\UserToken.cs" />
     <Compile Include="Classes\Global\TPool.cs" />
+    <Compile Include="Interfaces\Network\IMessageEvent.cs" />
     <Compile Include="Systems\Components\Core\ExceptionComponent.cs" />
     <Compile Include="Systems\Components\Core\LogComponent.cs" />
     <Compile Include="Systems\Components\Core\MemoryComponent.cs" />
     <Compile Include="Systems\Components\Core\SettingsComponent.cs" />
-    <Compile Include="Systems\Components\Sockets\SocketComponent.cs" />
+    <Compile Include="Systems\Components\Network\Messages\MessageComponent.cs" />
+    <Compile Include="Systems\Components\Network\Sockets\SocketComponent.cs" />
     <Compile Include="Systems\Interfaces\ISystemComponent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Systems\Framework.cs" />

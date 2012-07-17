@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Trebuchet.Systems.Components;
 
-namespace Trebuchet.Classes.Sockets
+namespace Trebuchet.Classes.Network.Sockets
 {
     class UserToken
     {
@@ -56,7 +56,6 @@ namespace Trebuchet.Classes.Sockets
         {
             Framework.Get<SocketComponent>().ReceiveArgsPool.Push(ReceiveArgs);
             Framework.Get<SocketComponent>().SendArgsPool.Push(SendArgs);
-
         }
     }
 }
