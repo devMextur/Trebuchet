@@ -31,7 +31,7 @@ namespace Trebuchet.Systems.Components
 
         public void Run()
         {
-            Console.Title = "Trebuchet Aplha 1.0.0";
+            Console.Title = "Trebuchet EXPERIMENTAL 1.0.0";
 
             this.ConsoleOutput = TextWriter.Synchronized(Console.Out);
             this.ConsoleInput = TextReader.Synchronized(Console.In);
