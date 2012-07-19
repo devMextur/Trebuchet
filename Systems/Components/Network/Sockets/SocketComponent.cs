@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Trebuchet.Classes.Global;
 using Trebuchet.Classes.Network.Sockets;
+using Trebuchet.Systems.Components.Network;
 using Trebuchet.Systems.Interfaces;
 
 namespace Trebuchet.Systems.Components
@@ -208,13 +209,11 @@ namespace Trebuchet.Systems.Components
 
             if (Args.BytesTransferred > 0 && Args.SocketError == SocketError.Success)
             {
-                byte[] Data = new byte[Args.BytesTransferred];
+                byte[] Bytes = new byte[Args.BytesTransferred];
 
-                Array.Copy(Buffer.Buffer, Args.Offset, Data, 0, Args.BytesTransferred);
+                Array.Copy(Buffer.Buffer, Args.Offset, Bytes, 0, Args.BytesTransferred);
 
-                // MessageHandler.Get().ProcessBytes((Args.UserToken as Session), ref Data);
-
-                Framework.Get<LogComponent>().WriteLine("Packet: {0}", Encoding.Default.GetString(Data));
+                Framework.Get<MessageComponent>().ProcessBytes(Token, ref Bytes);
 
                 QueueReceive(Args);
             }

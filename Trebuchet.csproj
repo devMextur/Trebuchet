@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Network\Messages\Factory\Global.cs" />
     <Compile Include="Classes\Network\Messages\MessageEvent.cs" />
     <Compile Include="Classes\Network\Sockets\BufferPool.cs" />
     <Compile Include="Classes\Network\Messages\Headers.cs" />
