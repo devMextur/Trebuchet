@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Trebuchet.Systems.Components;
+using Trebuchet.Systems.Components.Core;
 using Trebuchet.Systems.Interfaces;
 
 namespace Trebuchet
@@ -33,6 +34,9 @@ namespace Trebuchet
 
             double Percent = (double)(100 / (double)SystemComponents.Count);
             double TotPercent = 0;
+
+            Get<AssemblyComponent>().Run();
+            Get<AssemblyComponent>().Started = true;
 
             Get<LogComponent>().Run();
             Get<LogComponent>().Started = true;

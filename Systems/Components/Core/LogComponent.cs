@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Trebuchet.Systems.Components.Core;
 using Trebuchet.Systems.Interfaces;
 
 namespace Trebuchet.Systems.Components
@@ -31,7 +32,7 @@ namespace Trebuchet.Systems.Components
 
         public void Run()
         {
-            Console.Title = "Trebuchet EXPERIMENTAL 1.0.0";
+            Console.Title = "Trebuchet " + Framework.Get<AssemblyComponent>().ExecutingState + " " + Framework.Get<AssemblyComponent>().ExecutingVersion;
 
             this.ConsoleOutput = TextWriter.Synchronized(Console.Out);
             this.ConsoleInput = TextReader.Synchronized(Console.In);
@@ -45,13 +46,31 @@ namespace Trebuchet.Systems.Components
             this.PrintLine("                                                                               ");
             this.PrintLine("        ___  __   ___  __        __        ___ ___                             ");
             this.PrintLine("         |  |__) |__  |__) |  | /  ` |__| |__   |                              ");
-            this.PrintLine("         |  |  \\ |___ |__) \\__/ \\__, |  | |___  |    REV 1.0.0.0               ");
+            this.PrintLine("         |  |  \\ |___ |__) \\__/ \\__, |  | |___  |     {1} {0}{2}",
+                Framework.Get<AssemblyComponent>().ExecutingVersion,
+                Framework.Get<AssemblyComponent>().ExecutingState, 
+                GetNulledEnd(Framework.Get<AssemblyComponent>().ExecutingVersion,
+                Framework.Get<AssemblyComponent>().ExecutingState));
             this.PrintLine("                                                                               ");
             this.PrintLine("                        developer by Mextur - Superior C# Frameworks.          ");
             Console.ForegroundColor = ConsoleColor.Yellow;
             this.PrintLine("_______________________________________________________________________________");
             Console.BackgroundColor = ConsoleColor.Black;
             this.WriteLine();
+        }
+
+        private string GetNulledEnd(string Version, string State)
+        {
+            var Output = string.Empty;
+            var Length = Version.Length + State.Length + 1;
+            var NulledLength = 25 - Length;
+
+            for (int i = 0; i < NulledLength; i++)
+            {
+                Output += ' ';
+            }
+
+            return Output;
         }
 
         public void OutLineAsync(string Line = "", params object[] Parameters)
