@@ -42,11 +42,23 @@ namespace Trebuchet.Systems.Components
         {
             Dictionary<string, object> Items = new Dictionary<string, object>();
 
+            if (!System.IO.Directory.Exists(".//Assets"))
+            {
+                System.IO.Directory.CreateDirectory(".//Assets");
+                Trebuchet.ThrowWarning("Assets folder not found, Trebuchet created one.");
+            }
+
             if (!System.IO.File.Exists(SETTINGS_PATH))
             {
-                Trebuchet.ThrowException("Could not find Settings file,");
-                Trebuchet.ThrowException("make sure the Assets folder exists, and the settings file is there.");
-                return;
+                if (DownloadXMLSettings())
+                {
+                    Trebuchet.ThrowWarning("XML file not found, Trebuchet downloaded the developer's one.");
+                }
+                else
+                {
+                    Trebuchet.ThrowException("XML file not found / Trebuchet failed default file download.");
+                    return;
+                }
             }
 
             var Lines = System.IO.File.ReadAllLines(SETTINGS_PATH);
@@ -90,6 +102,20 @@ namespace Trebuchet.Systems.Components
             }
 
             Convertors = new Dictionary<Type, MethodInfo>(ConvertorItems);
+        }
+
+        public bool DownloadXMLSettings()
+        {
+            try
+            {
+                WebClient WebClient = new WebClient();
+                WebClient.DownloadFile("https://raw.github.com/devMextur/Trebuchet/master/Assets/Settings.xml", SETTINGS_PATH);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         public bool TryPop<T>(string Key, out T Output)

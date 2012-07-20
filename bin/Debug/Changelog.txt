@@ -1,0 +1,22 @@
+﻿22:54 19-7-2012: When Packethandling and the Database are finished 
+and the first MessageEvent's are rolling out: 'Alpha series starts, and usable for developing self.'
+
+22:52 19-7-2012 : REV 1.0.0.0
+- Serialize MessageEvents crossroads.
+- Start PacketHandling.
+
+18:07 16-7-2012 : REV 1.0.0.0
+- Coded Asynchronized Sending/Receiving/Accepting.
+- Finished Sockets.
+
+14:16 24-6-2012 : REV 1.0.0.0 (no update)
+- Started SocketComponent.
+- Improved LogComponent (Async-Loggin) (not finished yet, need to handle the tasks)
+- MemoryComponent rollback (useless).
+
+18:18 23-6-2012 : REV 1.0.0.0 (no update)
+- Re-organize Systems.
+- Coded: MemoryComponent(handler of Memory) and Framework(handler of our framework).
+- Edit: ExceptionComponent, LogComponent.
+- Finished: MemoryComponent, ExceptionComponent, LogComponent and Framework.
+- Created Changelog.

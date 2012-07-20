@@ -98,7 +98,18 @@ namespace Trebuchet.Systems.Components
             var EndPoint = new IPEndPoint(IPAddress, Port);
 
             this.Socket = new Socket(EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            this.Socket.Bind(EndPoint);
+
+            try
+            {
+                this.Socket.Bind(EndPoint);
+            }
+            catch (SocketException)
+            {
+                Trebuchet.ThrowWarning(IPAddress + " not bindable, automaticly binded to local ip: 127.0.0.1.");
+                EndPoint = new IPEndPoint(IPAddress.Any, Port);
+                this.Socket.Bind(EndPoint);
+            }
+
             this.Socket.Blocking = false;
             this.Socket.Listen(Backlog);
         }
