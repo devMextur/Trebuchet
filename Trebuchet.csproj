@@ -54,6 +54,7 @@
     <Compile Include="Classes\Network\Sockets\UserToken.cs" />
     <Compile Include="Classes\Global\TPool.cs" />
     <Compile Include="Interfaces\Network\IMessageEvent.cs" />
+    <Compile Include="Systems\Components\Core\AssemblyComponent.cs" />
     <Compile Include="Systems\Components\Core\ExceptionComponent.cs" />
     <Compile Include="Systems\Components\Core\LogComponent.cs" />
     <Compile Include="Systems\Components\Core\MemoryComponent.cs" />
