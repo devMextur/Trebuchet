@@ -53,16 +53,38 @@ namespace Trebuchet.Systems.Components.Core
             this.DevelopersState = WebsiteSource.Split('\"')[3];
             this.DevelopersVersion = WebsiteSource.Split('\"')[WebsiteSource.Split('\"').Count() - 2];
 
-            if (ExecutingVersion != DevelopersVersion)
+            Client.Dispose();
+        }
+
+        public bool CheckForUpdates()
+        {
+            if (CheckVersion())
             {
                 if (!System.IO.Directory.Exists(".//Releases"))
                 {
                     System.IO.Directory.CreateDirectory(".//Releases");
                 }
 
-                Client.DownloadFile("https://github.com/devMextur/Trebuchet/raw/master/bin/Debug/Trebuchet.exe", ".//Releases//Trebuchet-" + DevelopersVersion + "-" + DevelopersState + ".exe");
+                if (!System.IO.File.Exists(".//Releases//Trebuchet-" + DevelopersVersion + "-" + DevelopersState + ".exe"))
+                {
+                    WebClient Client = new WebClient();
+                    Client.DownloadFile("https://github.com/devMextur/Trebuchet/raw/master/bin/Debug/Trebuchet.exe", ".//Releases//Trebuchet-" + DevelopersVersion + "-" + DevelopersState + ".exe");
+                    Client.Dispose();
+                }
+
                 Trebuchet.ThrowWarning("New version available: Trebuchet-" + DevelopersVersion + "-" + DevelopersState);
+                Trebuchet.ThrowWarning("Look into your current folder for: 'Releases' to open the new Trebuchet.");
             }
+
+            return CheckVersion();
+        }
+
+        public bool CheckVersion()
+        {
+            var ExecutingSplit = ExecutingVersion.Replace(".", string.Empty);
+            var DeveloperSplit = DevelopersVersion.Replace(".", string.Empty);
+
+            return int.Parse(DeveloperSplit) > int.Parse(ExecutingSplit);
         }
     }
 }

@@ -40,6 +40,12 @@ namespace Trebuchet
 
             Get<LogComponent>().Run();
             Get<LogComponent>().Started = true;
+
+            if (Get<AssemblyComponent>().CheckForUpdates() == true)
+            {
+                return;
+            }
+
             Get<LogComponent>().WriteLine("Welcome {0}, started booting at: {1}", Environment.UserName, DateTime.Now.ToShortTimeString());
 
             var CursorTop = Console.CursorTop;
