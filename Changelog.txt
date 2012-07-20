@@ -1,4 +1,10 @@
-﻿22:54 19-7-2012: When Packethandling and the Database are finished 
+﻿18:22 20-7-2012 : EXPERIMENTAL 1.0.0.1
+- Created an Automatic-update-system (very helpful)
+- No longer need Assets by first boot. (They will be downloaded)
+- Improved I/O - LogComponent, and made the version Dynamic.
+- Edited SocketComponent to bidn to an alternative IP (Loopback)
+
+22:54 19-7-2012 : When Packethandling and the Database are finished 
 and the first MessageEvent's are rolling out: 'Alpha series starts, and usable for developing self.'
 
 22:52 19-7-2012 : REV 1.0.0.0
