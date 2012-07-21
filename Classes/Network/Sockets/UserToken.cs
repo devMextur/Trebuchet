@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Trebuchet.Classes.Network.Messages;
 using Trebuchet.Systems.Components;
 
 namespace Trebuchet.Classes.Network.Sockets
@@ -28,7 +29,13 @@ namespace Trebuchet.Classes.Network.Sockets
             private set;
         }
 
-        public byte[] QueueBytesToSend
+        public Queue<byte[]> QueueByteSend
+        {
+            get;
+            private set;
+        }
+
+        public byte[] LongBytesBuffer
         {
             get;
             private set;
@@ -39,16 +46,41 @@ namespace Trebuchet.Classes.Network.Sockets
             this.Socket = AcceptArgs.AcceptSocket;
             this.ReceiveArgs = ReceiveArgs;
             this.SendArgs = SendArgs;
+            this.QueueByteSend = new Queue<byte[]>();
         }
 
         public void FinializeSending()
         {
-            this.QueueBytesToSend = null;
+            this.QueueByteSend = new Queue<byte[]>();
+            this.LongBytesBuffer = null;
         }
 
-        public void SendBytes(byte[] Bytes)
+        public void PostSendComposer(MessageComposer Composer)
         {
-            this.QueueBytesToSend = Bytes;
+            this.PostSendBytes(Composer.GetBytes());
+        }
+
+        public void PostSendBytes(byte[] Bytes)
+        {
+            this.QueueByteSend.Enqueue(Bytes);
+        }
+
+        public void PushSendBytes()
+        {
+            if (QueueByteSend.Count == 0)
+            {
+                return;
+            }
+
+            var Output = new List<byte>();
+
+            for (int i = 0; i < QueueByteSend.Count; i++)
+            {
+                Output.AddRange(QueueByteSend.Dequeue());
+            }
+
+            this.LongBytesBuffer = Output.ToArray();
+
             Framework.Get<SocketComponent>().QueueSend(SendArgs);
         }
 

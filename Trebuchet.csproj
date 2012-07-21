@@ -51,7 +51,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Network\Messages\Factory\Global.cs" />
+    <Compile Include="Classes\Network\Messages\Encoding\Base64Encoding.cs" />
+    <Compile Include="Classes\Network\Messages\Encoding\Wire64Encoding.cs" />
+    <Compile Include="Classes\Network\Messages\Factory\Composers\Handshake.cs" />
+    <Compile Include="Classes\Network\Messages\Factory\Events\Handshake.cs" />
+    <Compile Include="Classes\Network\Messages\MessageComposer.cs" />
     <Compile Include="Classes\Network\Messages\MessageEvent.cs" />
     <Compile Include="Classes\Network\Sockets\BufferPool.cs" />
     <Compile Include="Classes\Network\Messages\Headers.cs" />

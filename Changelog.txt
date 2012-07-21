@@ -1,4 +1,13 @@
-﻿18:22 20-7-2012 : EXPERIMENTAL 1.0.0.1
+﻿12:25 21-7-2012 : EXPERIMENTAL 1.0.0.2
+- Finished MessageComponent.
+- Created system to recognize what type packet we receive. (Policy, Single, Multi).
+- Created Composers & Events.
+- In-Game : UI will be shown when connect.
+- Special Queue-Send system created  to paste packets together, then push them. (Idea of Matty / Created by Mextur)
+- Included the old Message-Recognize-system from Tazqon (forward-code). (helpful for developers)
+- Added Encoding (from Tazqon).
+
+18:22 20-7-2012 : EXPERIMENTAL 1.0.0.1
 - Created an Automatic-update-system (very helpful)
 - No longer need Assets by first boot. (They will be downloaded)
 - Improved I/O - LogComponent, and made the version Dynamic.

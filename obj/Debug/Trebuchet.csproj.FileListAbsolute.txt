@@ -1,5 +1,4 @@
 c:\users\wichard\documents\visual studio 11\Projects\Trebuchet\Trebuchet\bin\Debug\Trebuchet.exe.config
-c:\users\wichard\documents\visual studio 11\Projects\Trebuchet\Trebuchet\obj\Debug\Trebuchet.csprojResolveAssemblyReference.cache
 c:\users\wichard\documents\visual studio 11\Projects\Trebuchet\Trebuchet\bin\Debug\Trebuchet.exe
 c:\users\wichard\documents\visual studio 11\Projects\Trebuchet\Trebuchet\bin\Debug\Trebuchet.pdb
 c:\users\wichard\documents\visual studio 11\Projects\Trebuchet\Trebuchet\obj\Debug\Trebuchet.exe

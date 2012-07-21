@@ -241,10 +241,10 @@ namespace Trebuchet.Systems.Components
         {
             var Token = (Args.UserToken as UserToken);
 
-            if (Token.QueueBytesToSend != null)
+            if (Token.LongBytesBuffer != null)
             {
-                Args.SetBuffer(Args.Offset, Token.QueueBytesToSend.Length);
-                System.Buffer.BlockCopy(Token.QueueBytesToSend, 0, Args.Buffer, Args.Offset, Token.QueueBytesToSend.Length);
+                Args.SetBuffer(Args.Offset, Token.LongBytesBuffer.Length);
+                System.Buffer.BlockCopy(Token.LongBytesBuffer, 0, Args.Buffer, Args.Offset, Token.LongBytesBuffer.Length);
 
                 Token.FinializeSending();
             }
