@@ -9,9 +9,10 @@ using Trebuchet.Classes.Network.Messages;
 using Trebuchet.Classes.Network.Messages.Encoding;
 using Trebuchet.Classes.Network.Sockets;
 using Trebuchet.Interfaces.Network;
+using Trebuchet.Systems.Components.Core;
 using Trebuchet.Systems.Interfaces;
 
-namespace Trebuchet.Systems.Components.Network
+namespace Trebuchet.Systems.Components.Network.Messages
 {
     class MessageComponent : ISystemComponent
     {
@@ -72,9 +73,9 @@ namespace Trebuchet.Systems.Components.Network
                        "</cross-domain-policy>\x0");
         }
 
-        public void ProcessBytes(UserToken Token, ref byte[] Bytes)
+        public void ProcessBytes(Session Session, ref byte[] Bytes)
         {
-            if (Token == null)
+            if (Session == null)
             {
                 return;
             }
@@ -86,13 +87,13 @@ namespace Trebuchet.Systems.Components.Network
                 case ByteProcessType.Unknown:
                     return;
                 case ByteProcessType.Policy:
-                    HandlePolicy(Token);
+                    HandlePolicy(Session);
                     return;
                 case ByteProcessType.Single:
-                    HandleSingle(Token,true, ref Bytes);
+                    HandleSingle(Session,true, ref Bytes);
                     return;
                 case ByteProcessType.Multi:
-                    HandleMulti(Token, ref Bytes);
+                    HandleMulti(Session, ref Bytes);
                     return;
             }
         }
@@ -116,13 +117,13 @@ namespace Trebuchet.Systems.Components.Network
             else return ByteProcessType.Unknown;
         }
 
-        private void HandlePolicy(UserToken Token)
+        private void HandlePolicy(Session Session)
         {
-            Token.PostSendBytes(PolicyResponse);
-            Token.PushSendBytes();
+            Session.Write(PolicyResponse);
+            Session.Push();
         }
 
-        private void HandleSingle(UserToken Token, bool Scratch, ref byte[] Bytes)
+        private void HandleSingle(Session Session, bool Scratch, ref byte[] Bytes)
         {
             using (var Reader = new BinaryReader(new MemoryStream(Bytes, false)))
             {
@@ -138,9 +139,9 @@ namespace Trebuchet.Systems.Components.Network
 
                 if (MessageEvents.ContainsKey(Header))
                 {
-                    MessageEvents[Header].Invoke(Token, new MessageEvent(Header, Content));
-                    Token.PushSendBytes();
                     Framework.Get<LogComponent>().BlurLine("MSG", ConsoleColor.Green, "[{0}] {1}", ConsoleColor.White, Header, MessageEvents[Header].ToString().Split('.').Last());
+                    MessageEvents[Header].Invoke(Session, new MessageEvent(Header, Content));
+                    Session.Push();
                 }
                 else if (UnknownMessageEvents.ContainsKey(Header))
                 {
@@ -153,7 +154,7 @@ namespace Trebuchet.Systems.Components.Network
             }
         }
 
-        private void HandleMulti(UserToken Token, ref byte[] Bytes)
+        private void HandleMulti(Session Session, ref byte[] Bytes)
         {
             using (var Reader = new BinaryReader(new MemoryStream(Bytes,false)))
             {
@@ -162,7 +163,7 @@ namespace Trebuchet.Systems.Components.Network
                     var Index = Base64Encoding.DecodeInt32(Reader.ReadBytes(3)); i += 3;
                     var SingleBytes = Reader.ReadBytes(Index); i += Index;
 
-                    HandleSingle(Token, false, ref SingleBytes);
+                    HandleSingle(Session, false, ref SingleBytes);
                 }              
             }
         }

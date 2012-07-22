@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Trebuchet.Systems.Interfaces;
 
-namespace Trebuchet.Systems.Components
+namespace Trebuchet.Systems.Components.Core
 {
     class ExceptionComponent : ISystemComponent
     {

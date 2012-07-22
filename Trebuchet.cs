@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Trebuchet.Systems;
 using Trebuchet.Systems.Components;
+using Trebuchet.Systems.Components.Core;
 using Trebuchet.Systems.Interfaces;
 
 namespace Trebuchet
@@ -34,9 +35,12 @@ namespace Trebuchet
             
             Authenticated = true;
 
-            for (int i = 0; i < WarningQueue.Count; i++)
+            if (WarningQueue.Count > 0)
             {
-                ThrowWarning(WarningQueue.Dequeue());
+                for (int i = 0; i <= WarningQueue.Count; i++)
+                {
+                    ThrowWarning(WarningQueue.Dequeue());
+                }
             }
 
             Framework.Get<LogComponent>().Freeze();

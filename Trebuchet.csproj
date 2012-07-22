@@ -42,7 +42,13 @@
     <StartupObject>Trebuchet.Trebuchet</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
+    <Reference Include="mysql.data, Version=6.5.4.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\BrickEmulator\BrickEmulator\bin\Debug\mysql.data.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -51,24 +57,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Global\RowAdapter.cs" />
+    <Compile Include="Classes\Habbo\Characters\Character.cs" />
     <Compile Include="Classes\Network\Messages\Encoding\Base64Encoding.cs" />
     <Compile Include="Classes\Network\Messages\Encoding\Wire64Encoding.cs" />
+    <Compile Include="Classes\Network\Messages\Factory\Composers\Global.cs" />
     <Compile Include="Classes\Network\Messages\Factory\Composers\Handshake.cs" />
     <Compile Include="Classes\Network\Messages\Factory\Events\Handshake.cs" />
     <Compile Include="Classes\Network\Messages\MessageComposer.cs" />
     <Compile Include="Classes\Network\Messages\MessageEvent.cs" />
-    <Compile Include="Classes\Network\Sockets\BufferPool.cs" />
     <Compile Include="Classes\Network\Messages\Headers.cs" />
-    <Compile Include="Classes\Network\Sockets\UserToken.cs" />
-    <Compile Include="Classes\Global\TPool.cs" />
+    <Compile Include="Classes\Network\Sockets\SendToken.cs" />
+    <Compile Include="Classes\Network\Sockets\Session.cs" />
+    <Compile Include="Classes\Network\Sockets\SocketAsyncEventArgsBufferPool.cs" />
+    <Compile Include="Classes\Network\Sockets\SocketAsyncEventArgsPool.cs" />
+    <Compile Include="Classes\Storage\QueryStream.cs" />
     <Compile Include="Interfaces\Network\IMessageEvent.cs" />
     <Compile Include="Systems\Components\Core\AssemblyComponent.cs" />
     <Compile Include="Systems\Components\Core\ExceptionComponent.cs" />
     <Compile Include="Systems\Components\Core\LogComponent.cs" />
     <Compile Include="Systems\Components\Core\MemoryComponent.cs" />
     <Compile Include="Systems\Components\Core\SettingsComponent.cs" />
+    <Compile Include="Systems\Components\Habbo\CharacterComponent.cs" />
     <Compile Include="Systems\Components\Network\Messages\MessageComponent.cs" />
     <Compile Include="Systems\Components\Network\Sockets\SocketComponent.cs" />
+    <Compile Include="Systems\Components\Storage\SQLComponent.cs" />
     <Compile Include="Systems\Interfaces\ISystemComponent.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Systems\Framework.cs" />

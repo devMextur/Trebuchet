@@ -6,54 +6,68 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Trebuchet.Classes.Global;
 using Trebuchet.Classes.Network.Sockets;
-using Trebuchet.Systems.Components.Network;
+using Trebuchet.Systems.Components.Core;
+using Trebuchet.Systems.Components.Network.Messages;
 using Trebuchet.Systems.Interfaces;
 
-namespace Trebuchet.Systems.Components
+namespace Trebuchet.Systems.Components.Network.Sockets
 {
     class SocketComponent : ISystemComponent
     {
-        public bool Started
+        #region SocketAsyncEventArgsPools
+        private SocketAsyncEventArgsPool PoolOfAcceptSAEA
         {
             get;
             set;
         }
 
-        public Socket Socket
+        private SocketAsyncEventArgsPool PoolOfReceiveSAEA
         {
             get;
             set;
         }
 
-        #region Pooling
-        public TPool<SocketAsyncEventArgs> AcceptArgsPool
-        {
-            get;
-            set;
-        }
-
-        public TPool<SocketAsyncEventArgs> ReceiveArgsPool
-        {
-            get;
-            set;
-        }
-
-        public TPool<SocketAsyncEventArgs> SendArgsPool
+        private SocketAsyncEventArgsPool PoolOfSendSAEA
         {
             get;
             set;
         }
         #endregion
 
-        public SemaphoreSlim Semaphore
+        #region Semaphores
+        private SemaphoreSlim SemaphoreOfAcceptSAEA
         {
             get;
             set;
         }
 
-        public BufferPool Buffer
+        private SemaphoreSlim SemaphoreOfSendSAEA
+        {
+            get;
+            set;
+        }
+
+        private SemaphoreSlim SemaphoreOfSocketSAEA
+        {
+            get;
+            set;
+        }
+        #endregion
+
+        private SocketAsyncEventArgsBufferPool BufferPoolOfSAEA
+        {
+            get;
+            set;
+        }
+
+        public Socket AcceptSocket
+        {
+            get;
+            private set;
+        }
+
+        public bool Started
         {
             get;
             set;
@@ -63,7 +77,6 @@ namespace Trebuchet.Systems.Components
         {
             this.ConstructSocket();
             this.ConstructFramework();
-            this.QueueAccept();
         }
 
         private void ConstructSocket()
@@ -97,208 +110,284 @@ namespace Trebuchet.Systems.Components
 
             var EndPoint = new IPEndPoint(IPAddress, Port);
 
-            this.Socket = new Socket(EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            this.AcceptSocket = new Socket(EndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             try
             {
-                this.Socket.Bind(EndPoint);
+                this.AcceptSocket.Bind(EndPoint);
             }
             catch (SocketException)
             {
                 Trebuchet.ThrowWarning(IPAddress + " not bindable, automaticly binded to local ip: 127.0.0.1.");
                 EndPoint = new IPEndPoint(IPAddress.Any, Port);
-                this.Socket.Bind(EndPoint);
+                this.AcceptSocket.Bind(EndPoint);
             }
 
-            this.Socket.Blocking = false;
-            this.Socket.Listen(Backlog);
+            this.AcceptSocket.Blocking = false;
+            this.AcceptSocket.Listen(Backlog);
         }
 
         private void ConstructFramework()
         {
-            var SupportedAmount = default(int);
+            var MaxConnections = default(int);
 
-            if (!Framework.Get<SettingsComponent>().TryPop<int>("Trebuchet.Network.SupportedAmount", out SupportedAmount))
+            if (!Framework.Get<SettingsComponent>().TryPop<int>("Trebuchet.Network.Max.Connections", out MaxConnections))
             {
-                Trebuchet.ThrowException("Failed to get the Network SupportedAmount.");
-                Trebuchet.ThrowException("Check Setting 'Trebuchet.Network.SupportedAmount', it must be a valid integer.");
+                Trebuchet.ThrowException("Failed to get the Network Max connections.");
+                Trebuchet.ThrowException("Check Setting 'Trebuchet.Network.Max.Connections', it must be a valid integer.");
                 return;
             }
 
-            this.AcceptArgsPool = new TPool<SocketAsyncEventArgs>(SupportedAmount);
-            this.ReceiveArgsPool = new TPool<SocketAsyncEventArgs>(SupportedAmount);
-            this.SendArgsPool = new TPool<SocketAsyncEventArgs>(SupportedAmount);
-            this.Semaphore = new SemaphoreSlim(SupportedAmount, SupportedAmount);
-            this.Buffer = new BufferPool(SupportedAmount);
-            this.Buffer.PushAllReceivers(this.ReceiveArgsPool.PushAndHandleAll());
-            this.Buffer.PushAllSenders(this.SendArgsPool.PushAndHandleAll());
+            this.PoolOfAcceptSAEA = new SocketAsyncEventArgsPool();
+            this.PoolOfReceiveSAEA = new SocketAsyncEventArgsPool();
+            this.PoolOfSendSAEA = new SocketAsyncEventArgsPool();
 
-            foreach (SocketAsyncEventArgs Args in this.AcceptArgsPool.PushAndHandleAll())
+            this.BufferPoolOfSAEA = new SocketAsyncEventArgsBufferPool(MaxConnections);
+
+            this.SemaphoreOfAcceptSAEA = new SemaphoreSlim(MaxConnections, MaxConnections);
+            this.SemaphoreOfSocketSAEA = new SemaphoreSlim(MaxConnections, MaxConnections);
+            this.SemaphoreOfSendSAEA = new SemaphoreSlim(MaxConnections, MaxConnections);
+
+            SerializeFramework(MaxConnections);
+        }
+
+        private void SerializeFramework(int MaxConnections)
+        {
+            for (int i = 0; i < MaxConnections; i++)
             {
-                Args.Completed += AcceptCompleted;
+                var AcceptArgs = new SocketAsyncEventArgs();
+                AcceptArgs.Completed += AcceptArgs_Completed;
+                PoolOfAcceptSAEA.Push(AcceptArgs);
+
+                var ReceiveArgs = new SocketAsyncEventArgs();
+                BufferPoolOfSAEA.SetBuffer(ReceiveArgs);
+                ReceiveArgs.UserToken = new Session(i, ReceiveArgs);
+                ReceiveArgs.Completed += ReceiveArgs_Completed;
+                PoolOfReceiveSAEA.Push(ReceiveArgs);
+
+                var SendArgs = new SocketAsyncEventArgs();
+                BufferPoolOfSAEA.SetBuffer(SendArgs);
+                SendArgs.UserToken = new SendToken();
+                SendArgs.Completed += SendArgs_Completed;
+                PoolOfSendSAEA.Push(SendArgs);
+
+            }
+
+            BeginAccept();
+        }
+
+        public bool OptainSendObject(Session Session, out SocketAsyncEventArgs SendArgs)
+        {
+            this.SemaphoreOfSendSAEA.Wait();
+
+            if (this.PoolOfSendSAEA.TryPop(out SendArgs))
+            {
+                SendArgs.AcceptSocket = Session.Socket;
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
-        #region Accepting
-
-        public void QueueAccept()
+        #region Starters
+        private void BeginAccept()
         {
             SocketAsyncEventArgs AcceptArgs;
 
-            if (AcceptArgsPool.TryPop(out AcceptArgs))
+            this.SemaphoreOfAcceptSAEA.Wait();
+
+            if (this.PoolOfAcceptSAEA.TryPop(out AcceptArgs))
             {
-                Semaphore.Wait();
+                this.SemaphoreOfSocketSAEA.Wait();
 
-                bool Result = Socket.AcceptAsync(AcceptArgs);
+                var Response = this.AcceptSocket.AcceptAsync(AcceptArgs);
 
-                if (!Result)
+                if (!Response)
                 {
-                    ProccesAccept(AcceptArgs);
+                    HandleAccept(AcceptArgs);
                 }
             }
         }
 
-        public void ProccesAccept(SocketAsyncEventArgs Args)
+        private void BeginReceive(SocketAsyncEventArgs ReceiveArgs)
         {
-            if (Args.SocketError != SocketError.Success)
+            var Session = (ReceiveArgs.UserToken as Session);
+
+            if (Session.Socket == null)
             {
-                FinializeAccept(true, Args);
+                Trebuchet.ThrowException(string.Format("[{0}] Someone is screwed: his socket died and he/she is still alive.", Session.Id));
                 return;
             }
 
-            QueueAccept();
+            var Response = Session.Socket.ReceiveAsync(ReceiveArgs);
 
-            SocketAsyncEventArgs ReceiveArgs;
-            SocketAsyncEventArgs SendArgs;
-
-            if (this.ReceiveArgsPool.TryPop(out ReceiveArgs) && this.SendArgsPool.TryPop(out SendArgs))
+            if (!Response)
             {
-                ReceiveArgs.UserToken = new UserToken(Args, ReceiveArgs,SendArgs);
-                SendArgs.UserToken = ReceiveArgs.UserToken;
-
-                FinializeAccept(false, Args);
-
-                QueueReceive(ReceiveArgs);
-
-                Framework.Get<LogComponent>().WriteLine("Accepted: {0}", (ReceiveArgs.UserToken as UserToken).Socket.RemoteEndPoint);
+                HandleReceive(ReceiveArgs);
             }
-            else FinializeAccept(true, Args);
         }
 
-        private void AcceptCompleted(object Pointer, SocketAsyncEventArgs Args)
+        public void BeginSend(SocketAsyncEventArgs SendArgs)
         {
-            this.ProccesAccept(Args);
-        }
+            SendToken Token = (SendArgs.UserToken as SendToken);
 
-        private void FinializeAccept(bool Close, SocketAsyncEventArgs Args)
-        {
-            if (Close)
+            var BytesOfSend = new byte[0];
+
+            if (Token.QueueOfPackets.TryDequeue(out BytesOfSend))
             {
-                Args.AcceptSocket.Close();
+                if (BytesOfSend.Length <= SocketAsyncEventArgsBufferPool.BufferSizeOfSAEA)
+                {
+                    SendArgs.SetBuffer(SendArgs.Offset, BytesOfSend.Length);
+                    Buffer.BlockCopy(BytesOfSend, 0, SendArgs.Buffer, SendArgs.Offset, BytesOfSend.Length);
+                }
+                else
+                {
+                    SendArgs.SetBuffer(SendArgs.Offset, SocketAsyncEventArgsBufferPool.BufferSizeOfSAEA);
+                    Buffer.BlockCopy(BytesOfSend, 0, SendArgs.Buffer, SendArgs.Offset, SocketAsyncEventArgsBufferPool.BufferSizeOfSAEA);
+                }
             }
+            
+            var Response = SendArgs.AcceptSocket.SendAsync(SendArgs);
 
-            Args.AcceptSocket = null;
-            this.AcceptArgsPool.Push(Args);
+            if (!Response)
+            {
+                HandleSend(SendArgs);
+            }
         }
-
         #endregion
 
-        #region Receiving
-        public void QueueReceive(SocketAsyncEventArgs Args)
+        #region Handlers
+        private void HandleAccept(SocketAsyncEventArgs AcceptArgs)
         {
-            bool Result = (Args.UserToken as UserToken).Socket.ReceiveAsync(Args);
+            BeginAccept();
 
-            if (!Result)
+            if (AcceptArgs.SocketError != SocketError.Success)
             {
-                ReceiveCompleted(Args);
+                HandleBadAccept(AcceptArgs);
+                return;
             }
-        }
 
-        public void ReceiveCompleted(SocketAsyncEventArgs Args)
-        {
-            var Token = (Args.UserToken as UserToken);
+            SocketAsyncEventArgs ReceiveArgs;
 
-            if (Args.BytesTransferred > 0 && Args.SocketError == SocketError.Success)
+            if (this.PoolOfReceiveSAEA.TryPop(out ReceiveArgs))
             {
-                byte[] Bytes = new byte[Args.BytesTransferred];
+                var Session = (ReceiveArgs.UserToken as Session);
+                Session.SetSocket(AcceptArgs.AcceptSocket);
 
-                Array.Copy(Buffer.Buffer, Args.Offset, Bytes, 0, Args.BytesTransferred);
+                AcceptArgs.AcceptSocket = null;
+                this.PushReceiveSAEA(AcceptArgs);
 
-                Framework.Get<MessageComponent>().ProcessBytes(Token, ref Bytes);
-
-                QueueReceive(Args);
+                this.BeginReceive(ReceiveArgs);
             }
             else
             {
-                // TODO: write error
-                CloseClientSocket(Args);
-            } 
+                HandleBadAccept(AcceptArgs);
+                Trebuchet.ThrowException("You reached the max connections yout have set.");
+            }
+        }
+
+        private void HandleReceive(SocketAsyncEventArgs ReceiveArgs)
+        {
+            var Session = (ReceiveArgs.UserToken as Session);
+
+            if (ReceiveArgs.BytesTransferred > 0 && ReceiveArgs.SocketError == SocketError.Success)
+            {
+                var ReceivedBytes = new byte[ReceiveArgs.BytesTransferred];
+                Buffer.BlockCopy(ReceiveArgs.Buffer, ReceiveArgs.Offset, ReceivedBytes, 0, ReceiveArgs.BytesTransferred);
+
+                Framework.Get<MessageComponent>().ProcessBytes(Session, ref ReceivedBytes);
+                BeginReceive(ReceiveArgs);
+            }
+            else
+            {
+                HandleCloseReceiveSocket(ReceiveArgs);
+                PushReceiveSAEA(ReceiveArgs);
+            }
+        }
+
+        private void HandleSend(SocketAsyncEventArgs SendArgs)
+        {
+            SendToken Token = (SendArgs.UserToken as SendToken);
+
+            if (SendArgs.SocketError == SocketError.Success)
+            {
+                if (Token.QueueOfPackets.Count == 0)
+                {
+                    Token.OnConnectionClose();
+                    PushSendSAEA(SendArgs);
+                }
+                else
+                {
+                    BeginSend(SendArgs);
+                }
+            }
+            else
+            {
+                Token.OnConnectionClose();
+                PushSendSAEA(SendArgs);
+            }
         }
         #endregion
 
-        #region Sending
-        public void QueueSend(SocketAsyncEventArgs Args)
+        #region Events
+        private void AcceptArgs_Completed(object sender, SocketAsyncEventArgs e)
         {
-            var Token = (Args.UserToken as UserToken);
-
-            if (Token.LongBytesBuffer != null)
-            {
-                Args.SetBuffer(Args.Offset, Token.LongBytesBuffer.Length);
-                System.Buffer.BlockCopy(Token.LongBytesBuffer, 0, Args.Buffer, Args.Offset, Token.LongBytesBuffer.Length);
-
-                Token.FinializeSending();
-            }
-
-            bool Result = (Args.UserToken as UserToken).Socket.SendAsync(Args);
-
-            if (!Result)
-            {
-                SendCompleted(Args);
-            }
+            HandleAccept(e);
         }
 
-        public void SendCompleted(SocketAsyncEventArgs Args)
+        private void ReceiveArgs_Completed(object sender, SocketAsyncEventArgs e)
         {
-            var Token = (Args.UserToken as UserToken);
+            HandleReceive(e);
+        }
 
-            if (Args.SocketError != SocketError.Success)
-            {
-                // TODO: write error
-                CloseClientSocket(Args);
-            }
+        private void SendArgs_Completed(object sender, SocketAsyncEventArgs e)
+        {
+            HandleSend(e);
         }
         #endregion
 
-        #region Finializing
-        public void FinializeTraffic(object Pointer, SocketAsyncEventArgs Args)
+        #region Finializers
+        private void PushAcceptSAEA(SocketAsyncEventArgs Args)
         {
-            switch (Args.LastOperation)
-            {
-                case SocketAsyncOperation.Receive:
-                    ReceiveCompleted(Args);
-                    break;
-                case SocketAsyncOperation.Send:
-                    SendCompleted(Args);
-                    break;
-            }
+            this.PoolOfAcceptSAEA.Push(Args);
+            this.SemaphoreOfAcceptSAEA.Release();
         }
 
-        private void CloseClientSocket(SocketAsyncEventArgs Args)
+        public void PushReceiveSAEA(SocketAsyncEventArgs Args)
         {
-            UserToken Token = (Args.UserToken as UserToken);
+            this.PoolOfReceiveSAEA.Push(Args);
+        }
 
-            this.Semaphore.Release();
+        private void PushSendSAEA(SocketAsyncEventArgs Args)
+        {
+            this.PoolOfSendSAEA.Push(Args);
+            this.SemaphoreOfSendSAEA.Release();
+        }
 
-            Framework.Get<LogComponent>().WriteLine("Closed: {0}", Token.Socket.RemoteEndPoint);
+        private void HandleBadAccept(SocketAsyncEventArgs AcceptArgs)
+        {
+            AcceptArgs.AcceptSocket.Shutdown(SocketShutdown.Both);
+            AcceptArgs.AcceptSocket.Close();
+            this.PoolOfAcceptSAEA.Push(AcceptArgs);
+            this.SemaphoreOfAcceptSAEA.Release();
+        }
+
+        public void HandleCloseReceiveSocket(SocketAsyncEventArgs Args)
+        {
+            var Session = (Args.UserToken as Session);
+
+            SemaphoreOfSocketSAEA.Release();
 
             try
             {
-                Token.Socket.Shutdown(SocketShutdown.Both);
+                Session.Socket.Shutdown(SocketShutdown.Both);
+                Session.Socket.Close();
             }
-            catch (Exception) { }
+            catch { }
 
-            Token.Socket.Close();
-            Token.OnConnectionClose();
+            Session.OnConnectionClose();
         }
         #endregion
     }

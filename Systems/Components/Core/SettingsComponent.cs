@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Trebuchet.Systems.Interfaces;
 
-namespace Trebuchet.Systems.Components
+namespace Trebuchet.Systems.Components.Core
 {
     class SettingsComponent : ISystemComponent
     {
@@ -153,6 +153,13 @@ namespace Trebuchet.Systems.Components
         {
             int Output = default(int);
             int.TryParse(Input.ToString(), out Output);
+            return Output;
+        }
+
+        public static uint ConvertUniversalInteger(object Input)
+        {
+            uint Output = default(uint);
+            uint.TryParse(Input.ToString(), out Output);
             return Output;
         }
 

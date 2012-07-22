@@ -1,4 +1,9 @@
-﻿12:25 21-7-2012 : EXPERIMENTAL 1.0.0.2
+﻿13:39 21-7-2012 : EXPERIMENTAL 1.0.0.3
+- Packetsystem fully works now.
+- Some edits to Queue-Packet-System.
+
+
+12:25 21-7-2012 : EXPERIMENTAL 1.0.0.2
 - Finished MessageComponent.
 - Created system to recognize what type packet we receive. (Policy, Single, Multi).
 - Created Composers & Events.

@@ -10,6 +10,6 @@ namespace Trebuchet.Interfaces.Network
 {
     interface IMessageEvent
     {
-        void Invoke(UserToken Token, MessageEvent Message);
+        void Invoke(Session Session, MessageEvent Message);
     }
 }

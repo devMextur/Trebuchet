@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Trebuchet.Systems.Components.Core;
 using Trebuchet.Systems.Interfaces;
 
-namespace Trebuchet.Systems.Components
+namespace Trebuchet.Systems.Components.Core
 {
     class LogComponent : ISystemComponent
     {

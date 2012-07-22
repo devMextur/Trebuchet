@@ -1,9 +1,22 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Trebuchet.System>
+  
   <Trebuchet.Network>
-    <Trebuchet.Network.IP>127.0.0.1</Trebuchet.Network.IP>
+    <Trebuchet.Network.IP>192.168.2.2</Trebuchet.Network.IP>
     <Trebuchet.Network.Port>30000</Trebuchet.Network.Port>
     <Trebuchet.Network.Backlog>10</Trebuchet.Network.Backlog>
-    <Trebuchet.Network.SupportedAmount>10000</Trebuchet.Network.SupportedAmount>
+    <Trebuchet.Network.Max.Connections>10000</Trebuchet.Network.Max.Connections>
   </Trebuchet.Network>
+  
+  <Trebuchet.Database>
+    <Trebuchet.Database.Host>localhost</Trebuchet.Database.Host>
+    <Trebuchet.Database.Port>3306</Trebuchet.Database.Port>
+    <Trebuchet.Database.Username>root</Trebuchet.Database.Username>
+    <Trebuchet.Database.Password>wichard123</Trebuchet.Database.Password>
+    <Trebuchet.Database.Database>trebuchet_database</Trebuchet.Database.Database>
+    <Trebuchet.Database.Pooling.Enabled>true</Trebuchet.Database.Pooling.Enabled>
+    <Trebuchet.Database.Pooling.Minimal>5</Trebuchet.Database.Pooling.Minimal>
+    <Trebuchet.Database.Pooling.Maximal>30</Trebuchet.Database.Pooling.Maximal>
+  </Trebuchet.Database>
+  
 </Trebuchet.System>
