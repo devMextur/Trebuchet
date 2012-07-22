@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using MySql.Data.MySqlClient;
 using Trebuchet.Systems.Components.Core;
 using Trebuchet.Systems.Interfaces;
 
@@ -97,16 +97,31 @@ namespace Trebuchet.Systems.Components.Storage
                 return;
             }
 
-            var Builder = new MySqlConnectionStringBuilder();
-            Builder.Server = Host;
-            Builder.Port = Port;
-            Builder.UserID = Username;
-            Builder.Database = Database;
-            Builder.Password = Password;
-            Builder.Pooling = Pooling;
-            Builder.MinimumPoolSize = MinimumPooling;
-            Builder.MaximumPoolSize = MaximalPooling;
-            this.ConnectionString = Builder.ConnectionString;
+            try
+            {
+                var Builder = new MySql.Data.MySqlClient.MySqlConnectionStringBuilder();
+                Builder.Server = Host;
+                Builder.Port = Port;
+                Builder.UserID = Username;
+                Builder.Database = Database;
+                Builder.Password = Password;
+                Builder.Pooling = Pooling;
+                Builder.MinimumPoolSize = MinimumPooling;
+                Builder.MaximumPoolSize = MaximalPooling;
+                this.ConnectionString = Builder.ConnectionString;
+            }
+            catch
+            {
+                try
+                {
+                    WebClient Client = new WebClient();
+                    Client.DownloadFile("https://github.com/devMextur/Trebuchet/raw/master/bin/Debug/mysql.data.dll", ".//mysql.data.dll");
+                    Client.Dispose();
+
+                    Trebuchet.ThrowWarning("MySQL.Data was missing, Trebuchet downloaded the newest.");
+                }
+                catch { Trebuchet.ThrowWarning("MySQL.Data is missing, please make sure it is in the same folder."); }
+            }
         }
     }
 }

@@ -5,5 +5,4 @@ c:\users\wichard\documents\visual studio 11\Projects\Trebuchet\Trebuchet\obj\Deb
 c:\users\wichard\documents\visual studio 11\Projects\Trebuchet\Trebuchet\obj\Debug\Trebuchet.pdb
 C:\Users\Wichard\Documents\Visual Studio 11\Projects\Trebuchet\Trebuchet\bin\Debug\Assets\Settings.xml
 C:\Users\Wichard\Documents\Visual Studio 11\Projects\Trebuchet\Trebuchet\bin\Debug\Changelog.txt
-C:\Users\Wichard\Documents\Visual Studio 11\Projects\Trebuchet\Trebuchet\obj\Debug\Trebuchet.csprojResolveAssemblyReference.cache
 C:\Users\Wichard\Documents\Visual Studio 11\Projects\Trebuchet\Trebuchet\bin\Debug\mysql.data.dll
