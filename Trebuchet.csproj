@@ -60,8 +60,11 @@
     <Compile Include="Classes\Habbo\Characters\Character.cs" />
     <Compile Include="Classes\Network\Messages\Encoding\Base64Encoding.cs" />
     <Compile Include="Classes\Network\Messages\Encoding\Wire64Encoding.cs" />
+    <Compile Include="Classes\Network\Messages\Factory\Composers\Characters.cs" />
     <Compile Include="Classes\Network\Messages\Factory\Composers\Global.cs" />
     <Compile Include="Classes\Network\Messages\Factory\Composers\Handshake.cs" />
+    <Compile Include="Classes\Network\Messages\Factory\Composers\Navigator.cs" />
+    <Compile Include="Classes\Network\Messages\Factory\Events\Characters.cs" />
     <Compile Include="Classes\Network\Messages\Factory\Events\Handshake.cs" />
     <Compile Include="Classes\Network\Messages\MessageComposer.cs" />
     <Compile Include="Classes\Network\Messages\MessageEvent.cs" />
