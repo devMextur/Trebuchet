@@ -1,4 +1,8 @@
-﻿17:32 22-7-2012 : EXPERIMENTAL 1.0.0.4
+﻿21:38 22-7-2012 : EXPERIMENTAL 1.0.0.5
+- Created some in-game features.
+- Handled more Event(s).
+
+17:32 22-7-2012 : EXPERIMENTAL 1.0.0.4
 - Sync Refenence system created.
 
 13:39 21-7-2012 : EXPERIMENTAL 1.0.0.3
