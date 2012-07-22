@@ -86,5 +86,25 @@ namespace Trebuchet.Systems.Components.Core
 
             return int.Parse(DeveloperSplit) > int.Parse(ExecutingSplit);
         }
+
+        public void CheckReferences()
+        {
+            foreach (AssemblyName Reference in Assembly.GetExecutingAssembly().GetReferencedAssemblies())
+            {
+                if (!Reference.Name.StartsWith("System")
+                    && int.Parse(Reference.Version.ToString().Split('.')[0]) != int.Parse(Environment.Version.ToString().Split('.')[0]))
+                {
+                    var PathOfOffline = ".//" + Reference.Name + ".dll".ToLower();
+                    var PathOfOnline = "https://github.com/devMextur/Trebuchet/raw/master/bin/Debug/" + Reference.Name.ToLower() + ".dll";
+
+                    if (!System.IO.File.Exists(PathOfOffline))
+                    {
+                        WebClient Client = new WebClient();
+                        Client.DownloadFile(PathOfOnline, PathOfOffline);
+                        Trebuchet.ThrowWarning("Reference: " + Reference.Name + " was missing, Trebuchet synchronized it."); 
+                    }
+                }
+            }
+        }
     }
 }

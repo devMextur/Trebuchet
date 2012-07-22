@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Trebuchet.System>
+  <Trebuchet.Global>
+    <Trebuchet.Sync.Enabled>false</Trebuchet.Sync.Enabled>
+  </Trebuchet.Global>
   
   <Trebuchet.Network>
     <Trebuchet.Network.IP>192.168.2.2</Trebuchet.Network.IP>

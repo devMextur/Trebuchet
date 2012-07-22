@@ -52,11 +52,11 @@ namespace Trebuchet.Systems.Components.Core
             {
                 if (DownloadXMLSettings())
                 {
-                    Trebuchet.ThrowWarning("XML file not found, Trebuchet downloaded the developer's one.");
+                    Trebuchet.ThrowWarning("XML file not found, Trebuchet synchronized it.");
                 }
                 else
                 {
-                    Trebuchet.ThrowException("XML file not found / Trebuchet failed default file download.");
+                    Trebuchet.ThrowException("XML file not found / Trebuchet failed to synchronize.");
                     return;
                 }
             }

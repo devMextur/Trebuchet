@@ -1,7 +1,12 @@
-﻿13:39 21-7-2012 : EXPERIMENTAL 1.0.0.3
+﻿17:32 22-7-2012 : EXPERIMENTAL 1.0.0.4
+- Sync Refenence system created.
+
+13:39 21-7-2012 : EXPERIMENTAL 1.0.0.3
 - Packetsystem fully works now.
 - Some edits to Queue-Packet-System.
-
+- Character Authentication
+- Re-written SocketComponent + classes
+- SQLComponent added.
 
 12:25 21-7-2012 : EXPERIMENTAL 1.0.0.2
 - Finished MessageComponent.

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Trebuchet.Systems.Components;
 using Trebuchet.Systems.Components.Core;
+using Trebuchet.Systems.Components.Storage;
 using Trebuchet.Systems.Interfaces;
 
 namespace Trebuchet
@@ -45,6 +47,8 @@ namespace Trebuchet
             {
                 return;
             }
+
+            Get<AssemblyComponent>().CheckReferences();
 
             Get<LogComponent>().WriteLine("Welcome {0}, started booting at: {1}", Environment.UserName, DateTime.Now.ToShortTimeString());
 

@@ -42,8 +42,7 @@
     <StartupObject>Trebuchet.Trebuchet</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="mysql.data, Version=6.5.4.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="mysql.data, Version=6.4.3.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
       <HintPath>..\..\BrickEmulator\BrickEmulator\bin\Debug\mysql.data.dll</HintPath>
     </Reference>
     <Reference Include="System">
